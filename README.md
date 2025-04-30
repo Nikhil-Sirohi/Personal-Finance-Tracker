@@ -42,7 +42,6 @@ npm install
 
 ```env
 PORT=3000
-NODE_ENV=development
 DATABASE_URL=postgres://username:password@localhost:5432/finance_tracker
 JWT_SECRET=your_jwt_secret
 CRON_SCHEDULE=0 0 * * *
@@ -140,18 +139,7 @@ Reversals are supported for all operations:
 
 ## Project Structure
 
-```
-src/
-├── controllers/ (route handlers)
-├── services/ (business logic)
-├── models/ (Sequelize models)
-├── middleware/ (auth, validation)
-├── utils/ (auto-categorization, helpers)
-├── config/ (database, .env)
-├── routes/ (Express routes)
-├── jobs/ (cron jobs)
-└── postman/ (Postman collection)
-```
+For a detailed view of the project structure, see [folder_structure.md](folder_structure.md)
 
 ## Security Features
 

@@ -4,7 +4,6 @@ const { sendOTP, verifyOTP } = require("../controllers/otpController");
 
 const router = express.Router();
 
-// Validation middleware
 const validatePhone = [
   body("phone").isMobilePhone().withMessage("Invalid phone number"),
 ];
@@ -18,7 +17,6 @@ const validateOTP = [
     .withMessage("OTP must contain only numbers"),
 ];
 
-// Routes
 router.post("/send", validatePhone, sendOTP);
 router.post("/verify", validateOTP, verifyOTP);
 
