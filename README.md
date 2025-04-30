@@ -42,7 +42,6 @@ npm install
 
 ```env
 PORT=3000
-NODE_ENV=development
 DATABASE_URL=postgres://username:password@localhost:5432/finance_tracker
 JWT_SECRET=your_jwt_secret
 CRON_SCHEDULE=0 0 * * *
