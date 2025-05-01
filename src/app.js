@@ -27,7 +27,6 @@ const authLimiter = rateLimit({
   max: 5, // limit each IP to 5 requests per windowMs
 });
 
-// Apply rate limiting to all auth routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/expenses", auth, expenseRoutes);
 app.use("/api/budgets", auth, budgetRoutes);
