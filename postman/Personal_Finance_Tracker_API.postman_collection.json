@@ -1,15 +1,16 @@
 {
   "info": {
     "name": "Personal Finance Tracker API",
-    "description": "API for personal finance management with expense tracking, budgeting, and behavioral scoring",
+    "_postman_id": "7f8b9c3d-4e2a-4b3f-8c9e-2f3e5b7c9a1b",
+    "description": "Postman collection for testing the Personal Finance Tracker API. Covers all endpoints for authentication, expenses, budgets, scores, notifications, reversals, categories, and audit logs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Authentication",
+      "name": "Auth",
       "item": [
         {
-          "name": "Register User",
+          "name": "Signup",
           "request": {
             "method": "POST",
             "header": [
@@ -20,14 +21,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+1234567890\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1234567890\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/signup",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "signup"]
-            }
-          }
+            },
+            "description": "Register a new user. Returns success message."
+          },
+          "response": []
         },
         {
           "name": "Login",
@@ -41,14 +44,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "login"]
-            }
-          }
+            },
+            "description": "Login and get JWT token. Save the token in {{token}} variable."
+          },
+          "response": []
         },
         {
           "name": "Send OTP",
@@ -65,11 +70,13 @@
               "raw": "{\n  \"phone\": \"+1234567890\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/send-otp",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/send-otp",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "send-otp"]
-            }
-          }
+            },
+            "description": "Request an OTP for phone verification."
+          },
+          "response": []
         },
         {
           "name": "Verify OTP",
@@ -86,11 +93,13 @@
               "raw": "{\n  \"phone\": \"+1234567890\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/verify-otp",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "verify-otp"]
-            }
-          }
+            },
+            "description": "Verify OTP and get JWT token. Save the token in {{token}} variable."
+          },
+          "response": []
         }
       ]
     },
@@ -113,17 +122,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"amount\": 500,\n  \"category\": \"Food\",\n  \"date\": \"2024-04-27\",\n  \"tags\": [\"lunch\"],\n  \"notes\": \"Lunch at Cafe\"\n}"
+              "raw": "{\n  \"amount\": 100.50,\n  \"date\": \"2025-05-01\",\n  \"notes\": \"Lunch with friends\",\n  \"category\": \"Food\",\n  \"tags\": [\"dining\", \"friends\"]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/expenses",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/expenses",
+              "host": ["{{baseUrl}}"],
               "path": ["expenses"]
-            }
-          }
+            },
+            "description": "Create a new expense. Requires JWT."
+          },
+          "response": []
         },
         {
-          "name": "List Expenses",
+          "name": "Get Expenses",
           "request": {
             "method": "GET",
             "header": [
@@ -133,25 +144,27 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/expenses?startDate=2024-04-01&endDate=2024-04-30&category=Food",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/expenses?startDate=2025-05-01&endDate=2025-05-31&category=Food",
+              "host": ["{{baseUrl}}"],
               "path": ["expenses"],
               "query": [
                 {
                   "key": "startDate",
-                  "value": "2024-04-01"
+                  "value": "2025-05-01"
                 },
                 {
                   "key": "endDate",
-                  "value": "2024-04-30"
+                  "value": "2025-05-31"
                 },
                 {
                   "key": "category",
                   "value": "Food"
                 }
               ]
-            }
-          }
+            },
+            "description": "List expenses with optional filters. Requires JWT."
+          },
+          "response": []
         },
         {
           "name": "Update Expense",
@@ -169,14 +182,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"amount\": 550,\n  \"notes\": \"Lunch at Cafe with tip\"\n}"
+              "raw": "{\n  \"amount\": 150.75,\n  \"notes\": \"Updated lunch expense\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/expenses/:id",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/expenses/:id",
+              "host": ["{{baseUrl}}"],
               "path": ["expenses", ":id"]
-            }
-          }
+            },
+            "description": "Update an expense by ID. Replace :id with expense ID. Requires JWT."
+          },
+          "response": []
         },
         {
           "name": "Delete Expense",
@@ -189,28 +204,13 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/expenses/:id",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/expenses/:id",
+              "host": ["{{baseUrl}}"],
               "path": ["expenses", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Reverse Last Operation",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/expenses/reverse/:userId",
-              "host": ["{{base_url}}"],
-              "path": ["expenses", "reverse", ":userId"]
-            }
-          }
+            },
+            "description": "Soft delete an expense by ID. Replace :id with expense ID. Requires JWT."
+          },
+          "response": []
         }
       ]
     },
@@ -218,7 +218,7 @@
       "name": "Budgets",
       "item": [
         {
-          "name": "Set Budget",
+          "name": "Create Budget",
           "request": {
             "method": "POST",
             "header": [
@@ -233,17 +233,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"month\": 4,\n  \"year\": 2024,\n  \"totalBudget\": 10000,\n  \"categoryLimits\": {\n    \"Food\": 3000,\n    \"Travel\": 2000\n  }\n}"
+              "raw": "{\n  \"month\": 5,\n  \"year\": 2025,\n  \"totalBudget\": 5000.00,\n  \"categoryLimits\": {\n    \"Food\": 1000,\n    \"Travel\": 500\n  }\n}"
             },
             "url": {
-              "raw": "{{base_url}}/budgets",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/budgets",
+              "host": ["{{baseUrl}}"],
               "path": ["budgets"]
-            }
-          }
+            },
+            "description": "Create or update a budget. Requires JWT."
+          },
+          "response": []
         },
         {
-          "name": "Get Budget",
+          "name": "Get Budgets",
           "request": {
             "method": "GET",
             "header": [
@@ -253,21 +255,69 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/budgets?month=4&year=2024",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/budgets?month=5&year=2025",
+              "host": ["{{baseUrl}}"],
               "path": ["budgets"],
               "query": [
                 {
                   "key": "month",
-                  "value": "4"
+                  "value": "5"
                 },
                 {
                   "key": "year",
-                  "value": "2024"
+                  "value": "2025"
                 }
               ]
-            }
-          }
+            },
+            "description": "List budgets with optional filters. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Budget",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": 5,\n  \"year\": 2025,\n  \"totalBudget\": 6000.00,\n  \"categoryLimits\": {\n    \"Food\": 1200,\n    \"Travel\": 600\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/budgets/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["budgets", ":id"]
+            },
+            "description": "Update a budget by ID. Replace :id with budget ID. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Budget",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/budgets/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["budgets", ":id"]
+            },
+            "description": "Delete a budget by ID. Replace :id with budget ID. Requires JWT."
+          },
+          "response": []
         },
         {
           "name": "Get Budget Summary",
@@ -280,29 +330,31 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/reports/summary?month=4&year=2024",
-              "host": ["{{base_url}}"],
-              "path": ["reports", "summary"],
+              "raw": "{{baseUrl}}/budgets/reports/summary?month=5&year=2025",
+              "host": ["{{baseUrl}}"],
+              "path": ["budgets", "reports", "summary"],
               "query": [
                 {
                   "key": "month",
-                  "value": "4"
+                  "value": "5"
                 },
                 {
                   "key": "year",
-                  "value": "2024"
+                  "value": "2025"
                 }
               ]
-            }
-          }
+            },
+            "description": "Get budget vs. spending summary. Requires JWT."
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "User Score",
+      "name": "Scores",
       "item": [
         {
-          "name": "Get Score",
+          "name": "Get Scores",
           "request": {
             "method": "GET",
             "header": [
@@ -312,23 +364,258 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users/:id/score",
-              "host": ["{{base_url}}"],
-              "path": ["users", ":id", "score"]
-            }
-          }
+              "raw": "{{baseUrl}}/scores",
+              "host": ["{{baseUrl}}"],
+              "path": ["scores"]
+            },
+            "description": "Get user financial scores. Requires JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Send Notifications (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "send"]
+            },
+            "description": "Send notifications to users. Requires admin JWT ({{adminToken}})."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?status=pending&type=budget",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "type",
+                  "value": "budget"
+                }
+              ]
+            },
+            "description": "Get user notifications with optional filters. Requires JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reversals",
+      "item": [
+        {
+          "name": "Reverse Last Operation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reversals/reverse",
+              "host": ["{{baseUrl}}"],
+              "path": ["reversals", "reverse"]
+            },
+            "description": "Reverse the last expense operation. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reversal History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reversals?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["reversals"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get reversal history with pagination. Requires JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Add Category Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern\": \"restaurant\",\n  \"category\": \"Food\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories/rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "rules"]
+            },
+            "description": "Add a categorization rule. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category Rules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categories/rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "rules"]
+            },
+            "description": "Get all categorization rules. Requires JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Seed Default Categories (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "seed"]
+            },
+            "description": "Seed default categories. Requires admin JWT ({{adminToken}})."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit",
+      "item": [
+        {
+          "name": "Get Audit Logs (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/audit?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "audit"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get audit logs with pagination. Requires admin JWT ({{adminToken}})."
+          },
+          "response": []
         }
       ]
     }
   ],
   "variable": [
     {
-      "key": "base_url",
-      "value": "http://localhost:3000"
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "description": "Base URL of the API"
     },
     {
       "key": "token",
-      "value": "your_jwt_token_here"
+      "value": "",
+      "description": "JWT token for user authentication"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "description": "JWT token for admin authentication"
     }
   ]
 }
