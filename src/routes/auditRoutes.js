@@ -1,6 +1,6 @@
 const express = require("express");
 const { query } = require("express-validator");
-const { auth } = require("../middleware/auth");
+const { adminAuth } = require("../middleware/auth");
 const {
   getAuditLogs,
   getRecentActions,
@@ -32,7 +32,7 @@ const validateAuditQuery = [
     .withMessage("Limit must be between 1 and 100"),
 ];
 
-router.get("/", auth, validateAuditQuery, getAuditLogs);
-router.get("/recent", auth, getRecentActions);
+router.get("/", adminAuth, validateAuditQuery, getAuditLogs);
+router.get("/recent", adminAuth, getRecentActions);
 
 module.exports = router;

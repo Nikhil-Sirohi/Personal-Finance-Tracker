@@ -16,9 +16,9 @@ class Expense extends Model {
             min: 0,
           },
         },
-        description: {
+        notes: {
           type: DataTypes.STRING,
-          allowNull: false,
+          allowNull: true,
         },
         date: {
           type: DataTypes.DATE,
@@ -26,6 +26,10 @@ class Expense extends Model {
         },
         category: {
           type: DataTypes.STRING,
+          allowNull: true,
+        },
+        tags: {
+          type: DataTypes.ARRAY(DataTypes.STRING),
           allowNull: true,
         },
         isDeleted: {
@@ -36,6 +40,7 @@ class Expense extends Model {
       {
         sequelize,
         modelName: "Expense",
+        timestamps: true,
       }
     );
   }

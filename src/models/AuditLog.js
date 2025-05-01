@@ -43,8 +43,7 @@ const AuditLog = sequelize.define(
     },
   },
   {
-    timestamps: true,
-    updatedAt: false,
+    timestamps: true, // Enable both createdAt and updatedAt
   }
 );
 

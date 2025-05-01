@@ -1,6 +1,5 @@
 const express = require("express");
 const { body, query, param } = require("express-validator");
-const { auth } = require("../middleware/auth");
 const {
   createExpense,
   getExpenses,
@@ -12,41 +11,47 @@ const router = express.Router();
 
 const validateExpense = [
   body("amount")
-    .isDecimal({ min: 0 })
+    .isFloat({ min: 0 })
     .withMessage("Amount must be a positive number"),
+  body("description").trim().notEmpty().withMessage("Description is required"),
   body("category")
     .optional()
-    .isString()
-    .withMessage("Category must be a string"),
+    .trim()
+    .notEmpty()
+    .withMessage("Category cannot be empty"),
   body("date")
+    .optional()
     .isISO8601()
-    .withMessage("Date must be in ISO format (YYYY-MM-DD)"),
-  body("tags").optional().isArray().withMessage("Tags must be an array"),
-  body("notes").optional().isString().withMessage("Notes must be a string"),
+    .withMessage("Date must be a valid ISO date"),
 ];
 
 const validateExpenseQuery = [
   query("startDate")
     .optional()
     .isISO8601()
-    .withMessage("Start date must be in ISO format"),
+    .withMessage("Start date must be a valid ISO date"),
   query("endDate")
     .optional()
     .isISO8601()
-    .withMessage("End date must be in ISO format"),
+    .withMessage("End date must be a valid ISO date"),
   query("category")
     .optional()
-    .isString()
-    .withMessage("Category must be a string"),
+    .trim()
+    .notEmpty()
+    .withMessage("Category cannot be empty"),
   query("page")
     .optional()
     .isInt({ min: 1 })
     .withMessage("Page must be a positive integer"),
+  query("limit")
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage("Limit must be between 1 and 100"),
 ];
 
-router.post("/", auth, validateExpense, createExpense);
-router.get("/", auth, validateExpenseQuery, getExpenses);
-router.put("/:id", auth, validateExpense, updateExpense);
-router.delete("/:id", auth, deleteExpense);
+router.post("/", validateExpense, createExpense);
+router.get("/", validateExpenseQuery, getExpenses);
+router.put("/:id", validateExpense, updateExpense);
+router.delete("/:id", deleteExpense);
 
 module.exports = router;

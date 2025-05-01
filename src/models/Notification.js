@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 
-class Notification extends Model {
+class Budget extends Model {
   static init(sequelize) {
     super.init(
       {
@@ -9,22 +9,53 @@ class Notification extends Model {
           defaultValue: DataTypes.UUIDV4,
           primaryKey: true,
         },
-        type: {
-          type: DataTypes.ENUM("overspending", "inactivity"),
+        userId: {
+          type: DataTypes.UUID,
           allowNull: false,
+          references: {
+            model: "Users",
+            key: "id",
+          },
         },
-        message: {
-          type: DataTypes.TEXT,
+        month: {
+          type: DataTypes.INTEGER,
           allowNull: false,
+          validate: {
+            min: 1,
+            max: 12,
+          },
         },
-        status: {
-          type: DataTypes.ENUM("pending", "sent", "read"),
-          defaultValue: "pending",
+        year: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          validate: {
+            min: 2000,
+            max: 2100,
+          },
+        },
+        totalBudget: {
+          type: DataTypes.DECIMAL(10, 2),
+          allowNull: false,
+          validate: {
+            min: 0,
+          },
+        },
+        categoryLimits: {
+          type: DataTypes.JSONB,
+          allowNull: false,
+          defaultValue: {},
         },
       },
       {
         sequelize,
-        modelName: "Notification",
+        modelName: "Budget",
+        timestamps: true,
+        indexes: [
+          {
+            unique: true,
+            fields: ["userId", "month", "year"],
+          },
+        ],
       }
     );
   }
@@ -34,4 +65,4 @@ class Notification extends Model {
   }
 }
 
-module.exports = Notification;
+module.exports = Budget;

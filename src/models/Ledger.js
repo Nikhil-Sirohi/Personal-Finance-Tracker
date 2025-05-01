@@ -17,13 +17,18 @@ const Ledger = sequelize.define(
         key: "id",
       },
     },
-    expenseId: {
+    entityId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Expenses",
         key: "id",
       },
+    },
+    entityType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "expense",
     },
     operation: {
       type: DataTypes.ENUM("create", "update", "delete"),

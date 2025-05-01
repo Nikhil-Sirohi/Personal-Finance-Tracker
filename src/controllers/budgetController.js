@@ -1,7 +1,7 @@
 const { validationResult } = require("express-validator");
 const BudgetService = require("../services/budgetService");
 
-const setBudget = async (req, res) => {
+const createBudget = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -28,7 +28,7 @@ const setBudget = async (req, res) => {
   }
 };
 
-const getBudget = async (req, res) => {
+const getBudgets = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -45,6 +45,51 @@ const getBudget = async (req, res) => {
     }
 
     res.json(budget);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const updateBudget = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { month, year, totalBudget, categoryLimits } = req.body;
+    const userId = req.user.id;
+
+    const budget = await BudgetService.setBudget(
+      userId,
+      month,
+      year,
+      totalBudget,
+      categoryLimits
+    );
+
+    res.json({
+      message: "Budget updated successfully",
+      budget,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const deleteBudget = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const budget = await Budget.findOne({ where: { id, userId } });
+    if (!budget) {
+      return res.status(404).json({ error: "Budget not found" });
+    }
+
+    await budget.destroy();
+    res.json({ message: "Budget deleted successfully" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -73,7 +118,9 @@ const getBudgetSummary = async (req, res) => {
 };
 
 module.exports = {
-  setBudget,
-  getBudget,
+  createBudget,
+  getBudgets,
+  updateBudget,
+  deleteBudget,
   getBudgetSummary,
 };

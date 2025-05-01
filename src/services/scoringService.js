@@ -31,19 +31,22 @@ class ScoringService {
         return acc;
       }, {});
 
-      let totalScore = 0;
-      let categoryCount = 0;
+      let categoriesWithinBudget = 0;
+      let totalCategories = 0;
 
       for (const [category, spent] of Object.entries(categorySpending)) {
         const limit = budget.categoryLimits[category] || 0;
         if (limit > 0) {
-          const adherence = Math.max(0, 100 - ((spent - limit) / limit) * 100);
-          totalScore += adherence;
-          categoryCount++;
+          totalCategories++;
+          if (spent <= limit) {
+            categoriesWithinBudget++;
+          }
         }
       }
 
-      return categoryCount > 0 ? totalScore / categoryCount : 0;
+      return totalCategories > 0
+        ? (categoriesWithinBudget / totalCategories) * 30
+        : 0;
     } catch (error) {
       console.error("Error calculating budget adherence:", error);
       return 0;
@@ -70,7 +73,7 @@ class ScoringService {
       ).size;
 
       const daysInMonth = new Date(year, month, 0).getDate();
-      return (daysWithExpenses / daysInMonth) * 100;
+      return (daysWithExpenses / daysInMonth) * 30;
     } catch (error) {
       console.error("Error calculating usage frequency:", error);
       return 0;
@@ -90,15 +93,21 @@ class ScoringService {
           },
           isDeleted: false,
         },
+        order: [["date", "ASC"]],
       });
 
-      const uncategorizedExpenses = expenses.filter(
-        (expense) => !expense.category
-      ).length;
+      if (expenses.length === 0) return 0;
 
-      return expenses.length > 0
-        ? ((expenses.length - uncategorizedExpenses) / expenses.length) * 100
-        : 0;
+      let maxGap = 0;
+      for (let i = 1; i < expenses.length; i++) {
+        const prevDate = new Date(expenses[i - 1].date);
+        const currDate = new Date(expenses[i].date);
+        const gap = (currDate - prevDate) / (1000 * 60 * 60 * 24);
+        maxGap = Math.max(maxGap, gap);
+      }
+
+      const disciplineScore = Math.max(0, (30 - maxGap) / 30) * 40;
+      return disciplineScore;
     } catch (error) {
       console.error("Error calculating tracking discipline:", error);
       return 0;
@@ -114,24 +123,27 @@ class ScoringService {
           this.calculateTrackingDiscipline(userId, month, year),
         ]);
 
-      const overallScore =
-        budgetAdherence * 0.5 + usageFrequency * 0.3 + trackingDiscipline * 0.2;
+      const score = budgetAdherence + usageFrequency + trackingDiscipline;
 
       await Score.create({
         userId,
         month,
         year,
-        score: overallScore,
-        budgetAdherence,
-        usageFrequency,
-        trackingDiscipline,
+        score,
+        components: {
+          budgetAdherence,
+          usageFrequency,
+          trackingDiscipline,
+        },
       });
 
       return {
-        overallScore,
-        budgetAdherence,
-        usageFrequency,
-        trackingDiscipline,
+        score,
+        components: {
+          budgetAdherence,
+          usageFrequency,
+          trackingDiscipline,
+        },
       };
     } catch (error) {
       console.error("Error calculating score:", error);

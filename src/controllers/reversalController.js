@@ -27,48 +27,42 @@ const reverseLastOperation = async (req, res) => {
       return res.status(400).json({ error: "Operation already reversed" });
     }
 
-    let result;
+    let reversalType;
     switch (lastOperation.operation) {
       case "create":
-        if (lastOperation.entityType === "expense") {
-          await Expense.update(
-            { isDeleted: true },
-            { where: { id: lastOperation.entityId } }
-          );
-        }
+        await Expense.update(
+          { isDeleted: true },
+          { where: { id: lastOperation.entityId } }
+        );
+        reversalType = "delete";
         break;
 
       case "update":
-        if (lastOperation.entityType === "expense") {
-          const oldData = lastOperation.details.old;
-          await Expense.update(oldData, {
-            where: { id: lastOperation.entityId },
-          });
-        }
+        const oldData = lastOperation.data.old;
+        await Expense.update(oldData, {
+          where: { id: lastOperation.entityId },
+        });
+        reversalType = "update";
         break;
 
       case "delete":
-        if (lastOperation.entityType === "expense") {
-          await Expense.update(
-            { isDeleted: false },
-            { where: { id: lastOperation.entityId } }
-          );
-        }
+        await Expense.update(
+          { isDeleted: false },
+          { where: { id: lastOperation.entityId } }
+        );
+        reversalType = "create";
         break;
     }
 
     await Reversal.create({
       userId,
       ledgerId: lastOperation.id,
-      operation: lastOperation.operation,
-      entityType: lastOperation.entityType,
-      entityId: lastOperation.entityId,
+      reversalType,
     });
 
     res.json({
       message: "Operation reversed successfully",
-      operation: lastOperation.operation,
-      entityType: lastOperation.entityType,
+      reversalType,
     });
   } catch (error) {
     console.error("Error in reverseLastOperation:", error);
@@ -80,12 +74,26 @@ const getReversalHistory = async (req, res) => {
   try {
     const userId = req.user.id;
     const { page = 1, limit = 50 } = req.query;
-    const history = await ReversalService.getReversalHistory(
-      userId,
-      page,
-      limit
-    );
-    res.json(history);
+
+    const { count, rows } = await Reversal.findAndCountAll({
+      where: { userId },
+      order: [["timestamp", "DESC"]],
+      include: [
+        {
+          model: Ledger,
+          include: [{ model: Expense }],
+        },
+      ],
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
+    });
+
+    res.json({
+      reversals: rows,
+      total: count,
+      page: parseInt(page),
+      totalPages: Math.ceil(count / limit),
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

@@ -2,13 +2,15 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const { User } = require("../models");
-const { generateOTP, sendOTP } = require("../utils/otpUtils");
+const OTPService = require("../services/otpService");
 
 const register = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors.array() });
     }
 
     const { name, email, password, phone } = req.body;
@@ -18,30 +20,18 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: "Email already registered" });
+      return res.status(409).json({ error: "Email already exists" });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password,
       phone,
     });
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
     res.status(201).json({
-      message: "User registered successfully",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      message: "User created successfully",
     });
   } catch (error) {
     console.error("Error in register:", error);
@@ -53,12 +43,14 @@ const login = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors.array() });
     }
 
     const { email, password } = req.body;
 
-    const user = await User.findOne({
+    const user = await User.toLowerCasefindOne({
       where: { email },
     });
 
@@ -66,24 +58,21 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.checkPassword(password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
 
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
     });
   } catch (error) {
     console.error("Error in login:", error);
@@ -93,60 +82,51 @@ const login = async (req, res) => {
 
 const requestOTP = async (req, res) => {
   try {
-    const { phone } = req.body;
-
-    const user = await User.findOne({
-      where: { phone },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors.array() });
     }
 
-    const otp = generateOTP();
-    await sendOTP(phone, otp);
+    const { phone } = req.body;
+    const otp = await OTPService.generateOTP(phone);
 
-    res.json({ message: "OTP sent successfully" });
+    res.json({
+      message: "OTP sent successfully",
+      otp,
+    });
   } catch (error) {
     console.error("Error in requestOTP:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(400).json({ error: error.message });
   }
 };
 
 const verifyOTP = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors.array() });
+    }
+
     const { phone, otp } = req.body;
+    const user = await OTPService.verifyOTP(phone, otp);
 
-    const user = await User.findOne({
-      where: { phone },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const isValid = await verifyOTP(phone, otp);
-
-    if (!isValid) {
-      return res.status(401).json({ error: "Invalid OTP" });
-    }
-
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
 
     res.json({
       message: "OTP verified successfully",
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
     });
   } catch (error) {
     console.error("Error in verifyOTP:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(400).json({ error: error.message });
   }
 };
 

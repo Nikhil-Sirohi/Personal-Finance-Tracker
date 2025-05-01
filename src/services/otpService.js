@@ -15,6 +15,7 @@ class OTPService {
         phone,
         otp,
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        userId: user.id,
       });
 
       await AuditLog.create({
@@ -63,6 +64,8 @@ class OTPService {
         throw new Error("User not found");
       }
 
+      // Update status to verified before deletion
+      await otpRecord.update({ status: "verified" });
       await otpRecord.destroy();
 
       await AuditLog.create({

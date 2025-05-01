@@ -31,6 +31,11 @@ class User extends Model {
           allowNull: false,
           unique: true,
         },
+        role: {
+          type: DataTypes.ENUM("User", "Admin"),
+          defaultValue: "User",
+          allowNull: false,
+        },
         isActive: {
           type: DataTypes.BOOLEAN,
           defaultValue: true,
