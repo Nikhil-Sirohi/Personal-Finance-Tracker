@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const auth = require("./middleware/auth");
+const auditMiddleware = require("./middleware/audit");
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
@@ -21,6 +22,8 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+app.use(auditMiddleware);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, //15 min
