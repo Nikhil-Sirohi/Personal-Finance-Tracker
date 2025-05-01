@@ -92,14 +92,6 @@ Passwords hashed with bcrypt.
 Helmet for HTTP header security.
 No sensitive data in responses (e.g., password excluded).
 
-#Assumptions
-
-User Base: Small to medium (thousands of users), with potential for growth.
-Database: Single PostgreSQL instance, no sharding required initially.
-Cron Jobs: Run on the same server (e.g., score calculations).
-OTP Delivery: Assumes an external SMS service (not implemented in codebase).
-Environment: Deployed on a cloud platform (e.g., AWS, Heroku) with environment variables.
-
 #Trade-Offs
 
 Sequelize vs. Raw SQL:
