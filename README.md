@@ -98,7 +98,7 @@ Admin: Access to POST /notifications/send, POST /categories/seed, GET /admin/aud
 _Rate Limiting_: 5 requests per 15 minutes on /auth/* endpoints.
 *Audit Logging*: All requests logged with userId, action, ipAddress, userAgent, status.
 *Input Validation*: Uses express-validator for all endpoints.
-*Error Handling\*: Standardized responses ({ error: "message" } or { error: "message", details: [...] }).
+*Error Handling\*: Standardized responses.
 
 **Database**
 
