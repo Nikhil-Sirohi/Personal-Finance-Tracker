@@ -25,6 +25,7 @@ app.use(auditMiddleware);
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 5, // limit each IP to 5 requests per windowMs
+  message: { error: "Too many requests, please try again later" },
 });
 
 app.use("/api/auth", authLimiter, authRoutes);

@@ -1,5 +1,6 @@
 const express = require("express");
-const { body, query, param } = require("express-validator");
+const { body, query } = require("express-validator");
+const { auth } = require("../middleware/auth");
 const {
   createExpense,
   getExpenses,
@@ -13,45 +14,42 @@ const validateExpense = [
   body("amount")
     .isFloat({ min: 0 })
     .withMessage("Amount must be a positive number"),
-  body("description").trim().notEmpty().withMessage("Description is required"),
+  body("date").isISO8601().withMessage("Invalid date format"),
+  body("notes").optional().isString().withMessage("Notes must be a string"),
   body("category")
     .optional()
-    .trim()
-    .notEmpty()
-    .withMessage("Category cannot be empty"),
-  body("date")
+    .isString()
+    .withMessage("Category must be a string"),
+  body("tags")
     .optional()
-    .isISO8601()
-    .withMessage("Date must be a valid ISO date"),
+    .isArray()
+    .withMessage("Tags must be an array")
+    .custom((tags) => {
+      if (!tags.every((tag) => typeof tag === "string" && tag.trim() !== "")) {
+        throw new Error("Tags must be non-empty strings");
+      }
+      return true;
+    }),
 ];
 
 const validateExpenseQuery = [
   query("startDate")
     .optional()
     .isISO8601()
-    .withMessage("Start date must be a valid ISO date"),
+    .withMessage("Invalid start date format"),
   query("endDate")
     .optional()
     .isISO8601()
-    .withMessage("End date must be a valid ISO date"),
+    .withMessage("Invalid end date format"),
   query("category")
     .optional()
-    .trim()
-    .notEmpty()
-    .withMessage("Category cannot be empty"),
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be a positive integer"),
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage("Limit must be between 1 and 100"),
+    .isString()
+    .withMessage("Category must be a string"),
 ];
 
-router.post("/", validateExpense, createExpense);
-router.get("/", validateExpenseQuery, getExpenses);
-router.put("/:id", validateExpense, updateExpense);
-router.delete("/:id", deleteExpense);
+router.post("/", auth, validateExpense, createExpense);
+router.get("/", auth, validateExpenseQuery, getExpenses);
+router.put("/:id", auth, validateExpense, updateExpense);
+router.delete("/:id", auth, deleteExpense);
 
 module.exports = router;

@@ -4,7 +4,6 @@ const { Op } = require("sequelize");
 class ReversalService {
   static async reverseLastOperation(userId) {
     try {
-      // Get the last operation
       const lastOperation = await Ledger.findOne({
         where: { userId },
         order: [["timestamp", "DESC"]],
@@ -21,7 +20,6 @@ class ReversalService {
         throw new Error("No operation to reverse");
       }
 
-      // Check if already reversed
       const existingReversal = await Reversal.findOne({
         where: { ledgerId: lastOperation.id },
       });
@@ -30,7 +28,6 @@ class ReversalService {
         throw new Error("Operation already reversed");
       }
 
-      // Perform the reversal based on operation type
       let reversalType;
       switch (lastOperation.operation) {
         case "create":
@@ -60,7 +57,6 @@ class ReversalService {
           throw new Error("Invalid operation type");
       }
 
-      // Log the reversal
       const reversal = await Reversal.create({
         userId,
         ledgerId: lastOperation.id,

@@ -1,36 +1,24 @@
-const AuditService = require("../services/auditService");
+const { AuditLog } = require("../models");
 
 const auditMiddleware = async (req, res, next) => {
   try {
-    const originalSend = res.send;
-    res.send = function (body) {
-      if (req.user) {
-        const action = `${req.method} ${req.originalUrl}`;
-        const status = res.statusCode < 400 ? "success" : "failure";
+    const userId = req.user ? req.user.id : null;
+    const action = `${req.method} ${req.originalUrl}`;
+    const ipAddress = req.ip || "unknown";
+    const userAgent = req.get("User-Agent") || "unknown";
 
-        AuditService.logEvent(
-          req.user.id,
-          action,
-          {
-            method: req.method,
-            path: req.originalUrl,
-            params: req.params,
-            query: req.query,
-            body: req.body,
-            statusCode: res.statusCode,
-          },
-          status,
-          req
-        );
-      }
-
-      return originalSend.call(this, body);
-    };
+    await AuditLog.create({
+      userId,
+      action,
+      ipAddress,
+      userAgent,
+      status: "pending",
+    });
 
     next();
   } catch (error) {
-    console.error("Audit middleware error:", error);
-    next();
+    console.error("Error in auditMiddleware:", error);
+    next(error);
   }
 };
 

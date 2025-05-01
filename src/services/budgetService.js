@@ -1,20 +1,20 @@
-const Budget = require("../models/Budget");
-const Expense = require("../models/Expense");
+const { Budget } = require("../models");
 const { Op } = require("sequelize");
 
 class BudgetService {
   static async setBudget(userId, month, year, totalBudget, categoryLimits) {
     try {
-      const [budget, created] = await Budget.findOrCreate({
+      let budget = await Budget.findOne({
         where: { userId, month, year },
-        defaults: {
-          totalBudget,
-          categoryLimits,
-        },
       });
 
-      if (!created) {
-        await budget.update({
+      if (budget) {
+        budget = await budget.update({ totalBudget, categoryLimits });
+      } else {
+        budget = await Budget.create({
+          userId,
+          month,
+          year,
           totalBudget,
           categoryLimits,
         });
@@ -22,29 +22,31 @@ class BudgetService {
 
       return budget;
     } catch (error) {
-      console.error("Error setting budget:", error);
       throw error;
     }
   }
 
   static async getBudget(userId, month, year) {
     try {
-      const budget = await Budget.findOne({
-        where: { userId, month, year },
-      });
+      const where = { userId };
+      if (month) where.month = month;
+      if (year) where.year = year;
 
-      return budget;
+      const budgets = await Budget.findAll({ where });
+      return budgets;
     } catch (error) {
-      console.error("Error getting budget:", error);
       throw error;
     }
   }
 
   static async getBudgetSummary(userId, month, year) {
     try {
-      const budget = await this.getBudget(userId, month, year);
+      const budget = await Budget.findOne({
+        where: { userId, month, year },
+      });
+
       if (!budget) {
-        return null;
+        throw new Error("Budget not found");
       }
 
       const startDate = new Date(year, month - 1, 1);
@@ -60,36 +62,41 @@ class BudgetService {
         },
       });
 
-      const categorySpending = expenses.reduce((acc, expense) => {
+      const spendingByCategory = expenses.reduce((acc, expense) => {
         const category = expense.category || "Uncategorized";
         acc[category] = (acc[category] || 0) + parseFloat(expense.amount);
         return acc;
       }, {});
 
-      const categories = Object.entries(budget.categoryLimits).map(
-        ([name, limit]) => {
-          const spent = categorySpending[name] || 0;
-          return {
-            name,
-            budget: limit,
-            spent,
-            remaining: Math.max(0, limit - spent),
-          };
-        }
-      );
-
-      const totalSpent = Object.values(categorySpending).reduce(
-        (sum, amount) => sum + amount,
-        0
-      );
-
-      return {
-        totalBudget: budget.totalBudget,
-        totalSpent,
-        categories,
+      const summary = {
+        totalBudget: parseFloat(budget.totalBudget),
+        totalSpent: expenses.reduce(
+          (sum, expense) => sum + parseFloat(expense.amount),
+          0
+        ),
+        spendingByCategory,
+        categoryLimits: budget.categoryLimits,
       };
+
+      return summary;
     } catch (error) {
-      console.error("Error getting budget summary:", error);
+      throw error;
+    }
+  }
+
+  static async deleteBudget(userId, budgetId) {
+    try {
+      const budget = await Budget.findOne({
+        where: { id: budgetId, userId },
+      });
+
+      if (!budget) {
+        throw new Error("Budget not found");
+      }
+
+      await budget.destroy();
+      return { message: "Budget deleted successfully" };
+    } catch (error) {
       throw error;
     }
   }

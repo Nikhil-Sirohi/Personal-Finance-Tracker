@@ -1,163 +1,139 @@
-# Personal Finance Tracker API
+\***\*Personal Finance Tracker API\*\***
+_Overview_
+The Personal Finance Tracker API is a RESTful service designed to help users manage their personal finances. It supports tracking expenses, setting budgets, calculating financial scores, sending notifications, reversing operations, managing categories, and auditing user actions. Built with Node.js, Express, and Sequelize, it uses PostgreSQL as the database.
 
-A robust backend system for personal finance management, enabling users to track expenses, manage budgets, and receive behavioral insights.
+**Features**
 
-## Features
+-- User authentication with JWT and OTP-based verification.
+-- Expense tracking with categories and tags.
+-- Budget management with category-wise limits and spending summaries.
+-- Financial score calculation based on budget adherence, usage frequency, and tracking discipline.
+-- Operation reversal for expense modifications.
+-- Admin features for sending notifications, seeding categories, and viewing audit logs.
+-- Secure with rate limiting, RBAC, and audit logging.
 
-- **User Authentication**: Secure JWT and OTP-based authentication
-- **Expense Management**: Track and categorize expenses
-- **Budget Management**: Set and monitor monthly budgets
-- **Behavioral Scoring**: Get insights based on financial habits
-- **Notifications**: Receive alerts for overspending and inactivity
-- **Transaction Ledger**: Track and reverse expense operations
+**Prerequisites**
 
-## Tech Stack
+Node.js (v16 or higher)
+PostgreSQL (v12 or higher)
+npm (v8 or higher)
 
-- **Backend**: Node.js with Express.js
-- **Database**: PostgreSQL with Sequelize ORM
-- **Authentication**: JWT and OTP
-- **Documentation**: Postman collection
+**Installation**
 
-## Prerequisites
-
-- Node.js (v14 or higher)
-- PostgreSQL (v12 or higher)
-- npm or yarn
-
-## Setup
-
-1. Clone the repository:
-
-```bash
+Clone the Repository:
 git clone https://github.com/Nikhil-Sirohi/Personal-Finance-Tracker.git
-```
 
-2. Install dependencies:
-
-```bash
+**Install Dependencies:**
 npm install
-```
 
-3. Create a `.env` file in the root directory with the following variables:
-
-```env
-PORT=3000
-DATABASE_URL=postgres://username:password@localhost:5432/finance_tracker
+**Set Up Environment Variables:Create a .env file in the root directory with the following:**
 JWT_SECRET=your_jwt_secret
-CRON_SCHEDULE=0 0 * * *
-```
+DATABASE_URL=postgres://user:password@localhost:5432/dbname
+PORT=3000
+CRON_SCHEDULE=\* \* \* \* \*
 
-4. Set up the database:
+**Initialize Database:Run migrations to set up the database schema:**
+npx sequelize-cli db:migrate
 
-```bash
-npm run migrate
-```
-
-5. Start the server:
-
-```bash
+**Start the Server:**
 npm start
-```
 
-## API Endpoints
+The API will be available at http://localhost:3000.
 
-### Authentication
+**_API Endpoints_**
+All endpoints (except auth) require a JWT in the Authorization header as Bearer <token>.
 
-- `POST /auth/signup` - Register a new user
-- `POST /auth/login` - Login with email and password
-- `POST /otp/send` - Generate OTP for phone login
-- `POST /otp/verify` - Verify OTP and login
+_Authentication_
 
-### Expenses
+POST /auth/signup: Register a new user (name, email, password, phone).
+POST /auth/login: Login and get JWT (email, password).
+POST /auth/send-otp: Request OTP (phone).
+POST /auth/verify-otp: Verify OTP (phone, otp).
 
-- `POST /expenses` - Create a new expense
-- `GET /expenses` - List user's expenses with filters
-- `PUT /expenses/:id` - Update an existing expense
-- `DELETE /expenses/:id` - Delete an expense
+_Expenses_
 
-### Budgets
+POST /expenses: Create an expense (amount, date, notes, category, tags).
+GET /expenses: List expenses (supports startDate, endDate, category query params).
+PUT /expenses/:id: Update an expense.
+DELETE /expenses/:id: Soft delete an expense.
 
-- `POST /budgets` - Set monthly budget
-- `GET /budgets` - Get user's budget
-- `GET /budgets/summary` - Get budget vs. actual spending summary
+_Budgets_
 
-### User Scores
+POST /budgets: Create/update a budget (month, year, totalBudget, categoryLimits).
+GET /budgets: Get budgets (supports month, year query params).
+PUT /budgets/:id: Update a budget.
+DELETE /budgets/:id: Delete a budget.
+GET /reports/summary: Compare budget vs. actual spending.
 
-- `GET /users/:id/score` - Get user's behavioral score
-- `POST /users/:id/calculate` - Calculate user's score
+_Scores_
 
-### Categories
+GET /scores: Get user financial scores (monthly).
 
-- `POST /categories` - Add a new category rule (Admin only)
-- `GET /categories` - Get all category rules
-- `POST /categories/seed` - Seed default categories (Admin only)
+_Notifications_
 
-### Notifications
+POST /notifications/send: Send notifications (Admin-only).
+GET /notifications: Get user notifications (supports status, type query params).
 
-- `GET /notifications` - Get user's notifications
-- `PUT /notifications/:id/read` - Mark notification as read
-- `POST /notifications/send` - Send notifications (Admin only)
+_Reversals_
 
-### Reversals
+POST /reversals/reverse: Reverse the last expense operation.
+GET /reversals: Get reversal history.
 
-- `POST /reversals/reverse` - Reverse last operation
-- `GET /reversals/history` - Get reversal history
+_Categories_
 
-### Audit Logs
+POST /categories/rules: Add a categorization rule (pattern, category).
+GET /categories/rules: Get categorization rules.
+POST /categories/seed: Seed default categories (Admin-only).
 
-- `GET /audit` - Get audit logs
-- `GET /audit/recent` - Get recent actions
+_Audit Logs_
 
-## Behavioral Scoring
+GET /admin/audit: Get audit logs (Admin-only).
 
-The system calculates a score (0-100) based on three components:
+**Security**
 
-1. **Budget Adherence (30%)**: Ratio of categories within budget
-2. **Usage Frequency (30%)**: Active days in last 30 days
-3. **Tracking Discipline (40%)**: Consistency in expense tracking
+_Authentication_: JWT-based with 24-hour expiry. Tokens include id and role.
+_Role-Based Access Control (RBAC)_:
+User: Access to all non-admin endpoints.
+Admin: Access to POST /notifications/send, POST /categories/seed, GET /admin/audit.
+_Rate Limiting_: 5 requests per 15 minutes on /auth/* endpoints.
+*Audit Logging*: All requests logged with userId, action, ipAddress, userAgent, status.
+*Input Validation*: Uses express-validator for all endpoints.
+*Error Handling\*: Standardized responses ({ error: "message" } or { error: "message", details: [...] }).
 
-## Auto-Categorization
+**Database**
 
-Expenses are automatically categorized based on patterns in notes and tags:
+ORM: Sequelize with PostgreSQL.
+Schema:
 
-- Example: "lunch" → "Food"
-- Rules stored in `categories` table
+- _users_: id, name, email, password, phone, role, isActive, lastLogin, createdAt, updatedAt.
+- _expenses_: id, userId, amount, notes, date, category, tags, isDeleted, createdAt, updatedAt.
+- _budgets_: id, userId, month, year, totalBudget, categoryLimits, createdAt, updatedAt.
+- _scores_: id, userId, month, year, score, components, createdAt, updatedAt.
+- _notifications_: id, userId, message, status, type, createdAt, updatedAt.
+- _ledger_: id, userId, entityId, entityType, operation, data, timestamp, createdAt, updatedAt.
+- _reversals_: id, userId, ledgerId, reversalType, timestamp, createdAt, updatedAt.
+- _otps_: id, userId, phone, otp, status, attempts, expiresAt, createdAt, updatedAt.
+- _categories_: id, pattern, category, createdAt, updatedAt.
+- _audit_logs_: id, userId, action, details, ipAddress, userAgent, status, timestamp, createdAt, updatedAt.
 
-## Transaction Ledger
+**Testing**
 
-All expense operations are logged in the ledger:
+_Manual Testing:_
+Use Postman to test endpoints. Import the Postman collection from postman_collection.json .
+Example: Test POST /auth/signup:curl -X POST http://localhost:3000/api/auth/signup -H "Content-Type: application/json" -d '{"name":"John Doe","email":"john@example.com","password":"password123","phone":"+1234567890"}'
 
-- Create: New expense
-- Update: Modified expense
-- Delete: Soft-deleted expense
+**Contributing**
 
-Reversals are supported for all operations:
+- Follow the coding style in the codebase (ESLint configured).
+- Submit pull requests with clear descriptions.
+- Update docs/postman_collection.json for new endpoints.
 
-- Create → Delete
-- Update → Restore previous state
-- Delete → Restore expense
+**Troubleshooting**
 
-## Project Structure
+- Database Connection Issues:Verify DATABASE_URL in .env.
+- Ensure PostgreSQL is running.
+- Missing Environment Variables: Check .env for JWT_SECRET, DATABASE_URL, PORT, CRON_SCHEDULE.
+- Rate Limit Errors: Wait 15 minutes or use a different IP.
 
-For a detailed view of the project structure, see [folder_structure.md](folder_structure.md)
-
-## Security Features
-
-- Password hashing with bcrypt
-- JWT-based authentication
-- Rate limiting on auth routes
-- Input validation
-- SQL injection prevention
-- CORS and helmet middleware
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+License
+MIT License. See LICENSE for details.
