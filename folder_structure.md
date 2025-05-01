@@ -11,6 +11,7 @@
 │   │   └── database.js
 │   ├── controllers/
 │   │   ├── authController.js
+        |-- auditController.js
 │   │   ├── budgetController.js
 │   │   ├── categoryController.js
 │   │   ├── expenseController.js
@@ -22,6 +23,7 @@
 │   │   └── notificationJob.js
 │   ├── middleware/
 │   │   ├── auth.js
+        |-- audit.js
 │   │   └── errorHandler.js
 │   ├── models/
 │   │   ├── AuditLog.js
@@ -40,7 +42,7 @@
 │   │   ├── categoryRoutes.js
 │   │   ├── expenseRoutes.js
 │   │   ├── notificationRoutes.js
-│   │   ├── otpRoutes.js
+│   │   ├── auditRoutes.js
 │   │   ├── reversalRoutes.js
 │   │   └── scoreRoutes.js
 │   └── services/
@@ -52,7 +54,7 @@
 │       ├── otpService.js
 │       ├── reversalService.js
 │       └── scoringService.js
-├── .env.example
+├── .env
 ├── design_notes.md
 ├── folder_structure.md
 └── README.md
